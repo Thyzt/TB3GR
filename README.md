@@ -2,7 +2,7 @@
 
 Language: Python
 Modules required: OpenCV, Google Mediapipe, HaarCascade, keyboard             
-\nFor TurtleBot3, running this alongside teleoperation allows you to control the robot using hand gestures.
+For TurtleBot3, running this alongside teleoperation allows you to control the robot using hand gestures.
 
 ### Recognizable Gestures
 - five fingers up = w (forwards)
