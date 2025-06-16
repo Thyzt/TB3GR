@@ -3,29 +3,30 @@ import cv2
 import keyboard
  
 import mediapipe as mp
- 
+# Necessary imports
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
- 
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml') # Ensure you have the haarcascade_frontalface_default.xml file in the same directory or provide the correct path.
+# Hand initialization. Currently, it is set to 1 hand
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml') # Ensure you have the haarcascade_frontalface_default.xml file in the same directory or provide the correct path
  
 # Defines which fingers are up and down
 def count_fingers(hand_landmarks, handedness_label):
     # returns whether or not a finger is open (1) or closed (0)
-    # Thumb, index, middle, etc.
+
     fingers = []
  
     tips = [4, 8, 12, 16, 20]
- 
+     # Thumb, index, middle, etc.
     if handedness_label == "Right":
         fingers.append(int(hand_landmarks.landmark[tips[0]].x < hand_landmarks.landmark[tips[0] - 1].x))
- 
+  # Each knuckle + tip of the finger is assigned a number increasing from the thumb to the pinky. 
+ # This says that if the tip of the finger is recognized as below the knuckle, then the finger would be counted as "down
     else:
         fingers.append(int(hand_landmarks.landmark[tips[0]].x > hand_landmarks.landmark[tips[0] - 1].x))
  
     for i in range(1, 5):
         fingers.append(int(hand_landmarks.landmark[tips[i]].y < hand_landmarks.landmark[tips[i] - 2].y))
- 
+ # Same with thumb
     return fingers
  
 # Defines the gesture returned by hand states (ex. fist means all fingers are down, five means all fingers are up)
@@ -44,7 +45,7 @@ def gesture(finger_states):
         return "No Gesture" 
  
 which_hand = "Non-Existent"
- 
+
 # Runs the camera to capture video
 cap = cv2.VideoCapture(0)
  
@@ -58,7 +59,7 @@ while True:
         print("Error: Could not read frame.")
         break
  
-    frame = cv2.flip(frame, 1)  # Flip the frame horizontally for a mirror effect
+    frame = cv2.flip(frame, 1)  # Flips the frame horizontally for a mirror effect
     # Process the frame for hand detection
     results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
  
@@ -79,9 +80,11 @@ while True:
  
             locx = int(hand_landmarks.landmark[0].x * w)
             locy = int(hand_landmarks.landmark[0].y * h)
+         # This was never used ^^. Theoretically we could have captioned each hand with the gesture at the hand's location
  
  
     # Returns a keystroke based on the current gesture detected (w = forward, x = back, d = right rotation, a = left rotation, s = stop)
+    # TurtleBot3 Teleoperation mode must be active and focused on the screen/vm/pc in order for it to actually work
     if what_gesture == "five": keyboard.press_and_release('w')
     if what_gesture == "fist": keyboard.press_and_release('x')
     if what_gesture == "one": keyboard.press_and_release('d')
@@ -93,7 +96,7 @@ while True:
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) # Draw rectangles around detected faces
-    cv2.putText(frame, f'Faces: {len(faces)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv2.putText(frame, f'Faces: {len(faces)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2) # Draws telemetry text
     cv2.putText(frame, f'{which_hand} Gesture: {what_gesture}', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
  
     cv2.imshow('Video Feed', frame)
